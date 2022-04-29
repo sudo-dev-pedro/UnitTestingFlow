@@ -40,10 +40,11 @@ suspend fun main() {
 
 class HotFlowExample {
 
-    private val _stateFlow = MutableStateFlow(States.NO_CONNECTION)
-    val stateFlow = _stateFlow.asStateFlow()
+    private val _stateFlow = MutableSharedFlow<States>()
+    val stateFlow = _stateFlow
 
     suspend fun stateFlow() {
+        _stateFlow.emit(States.NO_CONNECTION)
         _stateFlow.emit(States.CONNECTING)
     }
 
