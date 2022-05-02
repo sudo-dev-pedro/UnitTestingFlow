@@ -1,8 +1,6 @@
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 suspend fun main() {
@@ -19,7 +17,6 @@ suspend fun main() {
 //        }
 
     coroutineScope {
-        hotFlowExample.sharedFlow(sharedFlow)
 
         launch {
             sharedFlow.collect {
@@ -40,16 +37,24 @@ suspend fun main() {
 
 class HotFlowExample {
 
-    private val _stateFlow = MutableSharedFlow<States>()
-    val stateFlow = _stateFlow
+    private val _sharedFlow = MutableSharedFlow<States>(2)
+    val sharedFlow = _sharedFlow
 
-    suspend fun stateFlow() {
-        _stateFlow.emit(States.NO_CONNECTION)
-        _stateFlow.emit(States.CONNECTING)
+    suspend fun emitSharedFlowValues() {
+        _sharedFlow.emit(States.NO_CONNECTION)
+        _sharedFlow.emit(States.CONNECTING)
     }
 
-    suspend fun sharedFlow(sharedFlow: MutableSharedFlow<States>) {
-        sharedFlow.emit(States.SCANNING)
-        sharedFlow.emit(States.CONNECTING)
+
+    suspend fun emitConcurrentSharedFlowValues() {
+        coroutineScope {
+            launch {
+                delay(2000L)
+                _sharedFlow.emit(States.NO_CONNECTION)
+            }
+            launch {
+                _sharedFlow.emit(States.CONNECTING)
+            }
+        }
     }
 }
